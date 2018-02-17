@@ -1,5 +1,6 @@
 using ContosoUniversity.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace ContosoUniversity.Data
 {
@@ -7,6 +8,7 @@ namespace ContosoUniversity.Data
     {
         public SchoolContext(DbContextOptions<SchoolContext> options) : base(options)
         {
+            Console.WriteLine("[SchoolContext.SchoolContext()] : empty contructor");
         }
 
         public DbSet<Course> Courses { get; set; }
@@ -18,9 +20,13 @@ namespace ContosoUniversity.Data
         ////////////////////////////////////////////////////////////////////////////////////
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            Console.WriteLine("[SchoolContext.OnModelCreating()] : BEGIN");
+
             modelBuilder.Entity<Course>().ToTable("Course");
             modelBuilder.Entity<Enrollment>().ToTable("Enrollment");
             modelBuilder.Entity<Student>().ToTable("Student");
+
+            Console.WriteLine("[SchoolContext.OnModelCreating()] : END");
         }
     }
 }

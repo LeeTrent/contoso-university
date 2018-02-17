@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ContosoUniversity.Data;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContosoUniversity
 {
@@ -15,7 +17,9 @@ namespace ContosoUniversity
     {
         public Startup(IConfiguration configuration)
         {
+            Console.WriteLine("[Startup.Startup()] : BEGIN");
             Configuration = configuration;
+            Console.WriteLine("[Startup.Startup()] : END");
         }
 
         public IConfiguration Configuration { get; }
@@ -23,10 +27,12 @@ namespace ContosoUniversity
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            Console.WriteLine("[Startup.ConfigureServices()] : BEGIN");
+
             services.AddMvc();
 
             // Database Connection Parameters
-            String connectionString = Environment.GetEnvironmentVariable("LOCAL_CONNECTION_STRING");
+            String connectionString = buildConnectionString();
 
             // WRITE CONNECTION STRING TO THE LOG
             Console.WriteLine("********************************************************************************");
@@ -39,11 +45,14 @@ namespace ContosoUniversity
             (
 		        opts => opts.UseMySQL(connectionString)
 		    );
+            Console.WriteLine("[Startup.ConfigureServices()] : END");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            Console.WriteLine("[Startup.Configure()] : BEGIN");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -61,6 +70,52 @@ namespace ContosoUniversity
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            Console.WriteLine("[Startup.Configure()] : END");
+        }
+
+        private String buildConnectionString()
+        {
+            Console.WriteLine("[Startup.buildConnectionString()] : BEGIN");
+
+            String connectionString = null;
+            try
+            {
+                connectionString = Environment.GetEnvironmentVariable("LOCAL_CONNECTION_STRING");
+                if (connectionString == null)
+                {
+                    string vcapServices = System.Environment.GetEnvironmentVariable("VCAP_SERVICES");
+                    if (vcapServices != null)
+                    {
+                        dynamic json = JsonConvert.DeserializeObject(vcapServices);
+                        foreach (dynamic obj in json.Children())
+                        {
+                            dynamic credentials = (((JProperty)obj).Value[0] as dynamic).credentials;
+                            if (credentials != null)
+                            {
+                                string host     = credentials.host;
+                                string username = credentials.username;
+                                string password = credentials.password;
+                                string port     = credentials.port;
+                                string db_name  = credentials.db_name;
+
+                                connectionString = "Username=" + username + ";"
+                                    + "Password=" + password + ";"
+                                    + "Host=" + host + ";"
+                                    + "Port=" + port + ";"
+                                    + "Database=" + db_name + ";Pooling=true;";
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception in [Startup.buildConnectionString()]:");
+                Console.WriteLine(e);
+            }
+            Console.WriteLine("[Startup.buildConnectionString()] : END");
+            return connectionString;
         }
     }
 }

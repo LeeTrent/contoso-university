@@ -21,6 +21,8 @@ namespace ContosoUniversity
 
     public static void Main(string[] args)
     {
+        Console.WriteLine("[Program.Main()] : BEGIN");
+
         var host = BuildWebHost(args);
 
         using (var scope = host.Services.CreateScope())
@@ -38,7 +40,9 @@ namespace ContosoUniversity
             }
         }
 
+        Console.WriteLine("[Program.Main()] : Calling host.Run()");
         host.Run();
+        Console.WriteLine("[Program.Main()] : END");
     }
 
 

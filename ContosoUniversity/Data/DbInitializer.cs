@@ -8,6 +8,8 @@ namespace ContosoUniversity.Data
     {
         public static void Initialize(SchoolContext context)
         {
+            Console.WriteLine("[DbInitializer.Initialize()] : BEGIN");
+
             context.Database.EnsureCreated();
 
             // Look for any students.
@@ -69,6 +71,8 @@ namespace ContosoUniversity.Data
                 context.Enrollments.Add(e);
             }
             context.SaveChanges();
+
+            Console.WriteLine("[DbInitializer.Initialize()] : END");
         }
     }
 }
